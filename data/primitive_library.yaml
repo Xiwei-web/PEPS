@@ -1,0 +1,551 @@
+{
+  "schema_version": "0.1.0",
+  "description": "Initial PEPS FESM primitive library. This file is JSON-compatible YAML so it can be loaded without PyYAML.",
+  "metadata": {
+    "families": ["frame", "entity", "state", "metric"],
+    "score_scale": "0-1",
+    "notes": "Parser must select from this persistent library unless primitive-gap mode is explicitly enabled."
+  },
+  "primitives": {
+    "frame": [
+      {
+        "id": "frame.camera_based",
+        "family": "frame",
+        "name": "camera_based_frame",
+        "description": "Use a camera or image viewpoint as the spatial reference frame.",
+        "arguments_schema": {
+          "type": "object",
+          "required": ["view"],
+          "properties": {
+            "view": {"type": "string"},
+            "origin": {"type": "string"},
+            "forward_axis": {"type": "string", "enum": ["+Z_cam", "-Z_cam", "view_forward"]},
+            "down_axis": {"type": "string", "enum": ["+Y_cam", "-Y_cam", "gravity"]}
+          }
+        },
+        "output_schema": {"type": "object"},
+        "computable_by": ["reconstruct"],
+        "tags": ["reference_frame", "viewpoint", "camera"]
+      },
+      {
+        "id": "frame.object_based",
+        "family": "frame",
+        "name": "object_based_frame",
+        "description": "Use an object anchor pose or orientation as the spatial reference frame.",
+        "arguments_schema": {
+          "type": "object",
+          "required": ["anchor_entity"],
+          "properties": {
+            "anchor_entity": {"type": "string"},
+            "origin": {"type": "string"},
+            "forward_axis": {"type": "string"},
+            "down_axis": {"type": "string"}
+          }
+        },
+        "output_schema": {"type": "object"},
+        "computable_by": ["predict_obj_pose", "code"],
+        "tags": ["reference_frame", "object", "orientation"]
+      },
+      {
+        "id": "frame.direction_based",
+        "family": "frame",
+        "name": "direction_based_frame",
+        "description": "Use the ordered vector from a source entity to a target entity as forward direction.",
+        "arguments_schema": {
+          "type": "object",
+          "required": ["source_entity", "target_entity"],
+          "properties": {
+            "source_entity": {"type": "string"},
+            "target_entity": {"type": "string"},
+            "down_axis": {"type": "string", "enum": ["gravity", "+Y_cam", "-Y_cam"]}
+          }
+        },
+        "output_schema": {"type": "object"},
+        "computable_by": ["detect", "project_box_to_3d_points", "code"],
+        "tags": ["reference_frame", "direction", "inter_object_vector"]
+      },
+      {
+        "id": "frame.event_defined_direction",
+        "family": "frame",
+        "name": "event_defined_direction",
+        "description": "Use an interaction or event phrase, such as entering through a door, to define the viewer's forward direction.",
+        "arguments_schema": {
+          "type": "object",
+          "required": ["event_phrase"],
+          "properties": {
+            "event_phrase": {"type": "string"},
+            "anchor_entity": {"type": "string"},
+            "actor": {"type": "string"}
+          }
+        },
+        "output_schema": {"type": "object"},
+        "computable_by": ["detect", "predict_obj_pose", "code"],
+        "tags": ["reference_frame", "event", "orientation"]
+      }
+    ],
+    "entity": [
+      {
+        "id": "entity.target",
+        "family": "entity",
+        "name": "target_entity",
+        "description": "The queried entity whose spatial relation or state must be answered.",
+        "arguments_schema": {
+          "type": "object",
+          "required": ["description"],
+          "properties": {
+            "description": {"type": "string"},
+            "view": {"type": "string"},
+            "attributes": {"type": "array"}
+          }
+        },
+        "output_schema": {"type": "object"},
+        "computable_by": ["detect"],
+        "tags": ["entity", "target", "grounding"]
+      },
+      {
+        "id": "entity.anchor",
+        "family": "entity",
+        "name": "anchor_entity",
+        "description": "A relational reference entity used to define frame, region, or metric arguments.",
+        "arguments_schema": {
+          "type": "object",
+          "required": ["description"],
+          "properties": {
+            "description": {"type": "string"},
+            "view": {"type": "string"},
+            "attributes": {"type": "array"}
+          }
+        },
+        "output_schema": {"type": "object"},
+        "computable_by": ["detect"],
+        "tags": ["entity", "anchor", "grounding"]
+      },
+      {
+        "id": "entity.candidate_set",
+        "family": "entity",
+        "name": "candidate_entity_set",
+        "description": "A set of candidate entities to compare, count, or filter.",
+        "arguments_schema": {
+          "type": "object",
+          "required": ["description"],
+          "properties": {
+            "description": {"type": "string"},
+            "mode": {"type": "string", "enum": ["enumerated", "open_set_detection"]},
+            "expected_count": {"type": "integer"}
+          }
+        },
+        "output_schema": {"type": "array"},
+        "computable_by": ["detect"],
+        "tags": ["entity", "candidate", "set"]
+      },
+      {
+        "id": "entity.view_source",
+        "family": "entity",
+        "name": "view_source",
+        "description": "The image view or views from which an entity must be grounded.",
+        "arguments_schema": {
+          "type": "object",
+          "required": ["view"],
+          "properties": {
+            "view": {"type": "string"},
+            "entity_ref": {"type": "string"}
+          }
+        },
+        "output_schema": {"type": "object"},
+        "computable_by": ["detect"],
+        "tags": ["entity", "view", "grounding"]
+      },
+      {
+        "id": "entity.filter",
+        "family": "entity",
+        "name": "entity_filter",
+        "description": "Attribute, region, area, or context constraint used to disambiguate entities.",
+        "arguments_schema": {
+          "type": "object",
+          "required": ["entity_ref", "constraint"],
+          "properties": {
+            "entity_ref": {"type": "string"},
+            "constraint": {"type": "string"},
+            "constraint_type": {"type": "string"}
+          }
+        },
+        "output_schema": {"type": "object"},
+        "computable_by": ["detect", "ocr", "code"],
+        "tags": ["entity", "filter", "disambiguation"]
+      },
+      {
+        "id": "entity.count",
+        "family": "entity",
+        "name": "entity_count_requirement",
+        "description": "Cardinality expectation for an entity or candidate set.",
+        "arguments_schema": {
+          "type": "object",
+          "required": ["entity_ref"],
+          "properties": {
+            "entity_ref": {"type": "string"},
+            "count_type": {"type": "string", "enum": ["one", "multiple", "unspecified"]}
+          }
+        },
+        "output_schema": {"type": "object"},
+        "computable_by": ["detect", "code"],
+        "tags": ["entity", "count", "ambiguity"]
+      }
+    ],
+    "state": [
+      {
+        "id": "state.camera_pose",
+        "family": "state",
+        "name": "camera_pose",
+        "description": "Camera extrinsics or pose for a specified image view.",
+        "arguments_schema": {
+          "type": "object",
+          "required": ["view"],
+          "properties": {"view": {"type": "string"}}
+        },
+        "output_schema": {"type": "object"},
+        "computable_by": ["reconstruct"],
+        "tags": ["state", "camera", "pose"]
+      },
+      {
+        "id": "state.centroid",
+        "family": "state",
+        "name": "entity_centroid",
+        "description": "Representative 3D centroid for an entity.",
+        "arguments_schema": {
+          "type": "object",
+          "required": ["entity_ref"],
+          "properties": {"entity_ref": {"type": "string"}}
+        },
+        "output_schema": {"type": "array"},
+        "computable_by": ["detect", "project_box_to_3d_points", "code"],
+        "tags": ["state", "position", "centroid"]
+      },
+      {
+        "id": "state.bbox3d",
+        "family": "state",
+        "name": "bbox3d",
+        "description": "3D bounding box for an entity, either axis-aligned or oriented.",
+        "arguments_schema": {
+          "type": "object",
+          "required": ["entity_ref"],
+          "properties": {
+            "entity_ref": {"type": "string"},
+            "mode": {"type": "string", "enum": ["axis_aligned", "oriented"]}
+          }
+        },
+        "output_schema": {"type": "object"},
+        "computable_by": ["project_box_to_3d_points", "predict_obj_pose", "code"],
+        "tags": ["state", "shape", "bbox"]
+      },
+      {
+        "id": "state.pointset",
+        "family": "state",
+        "name": "entity_pointset",
+        "description": "Entity-level 3D point set used for surface, contact, containment, or region metrics.",
+        "arguments_schema": {
+          "type": "object",
+          "required": ["entity_ref"],
+          "properties": {"entity_ref": {"type": "string"}}
+        },
+        "output_schema": {"type": "array"},
+        "computable_by": ["detect", "project_box_to_3d_points"],
+        "tags": ["state", "pointcloud", "surface"]
+      },
+      {
+        "id": "state.pose3d",
+        "family": "state",
+        "name": "pose3d",
+        "description": "Full 6DoF object pose for local-frame transformations.",
+        "arguments_schema": {
+          "type": "object",
+          "required": ["entity_ref"],
+          "properties": {"entity_ref": {"type": "string"}}
+        },
+        "output_schema": {"type": "object"},
+        "computable_by": ["predict_obj_pose"],
+        "tags": ["state", "pose", "orientation"]
+      },
+      {
+        "id": "state.orientation",
+        "family": "state",
+        "name": "orientation_axis",
+        "description": "A single semantic front axis or dominant orientation axis for an entity.",
+        "arguments_schema": {
+          "type": "object",
+          "required": ["entity_ref"],
+          "properties": {
+            "entity_ref": {"type": "string"},
+            "axis_type": {"type": "string"}
+          }
+        },
+        "output_schema": {"type": "array"},
+        "computable_by": ["predict_obj_pose", "code"],
+        "tags": ["state", "orientation", "axis"]
+      },
+      {
+        "id": "state.surface_normal",
+        "family": "state",
+        "name": "surface_normal",
+        "description": "Outward or dominant normal vector for planar objects or surfaces.",
+        "arguments_schema": {
+          "type": "object",
+          "required": ["entity_ref"],
+          "properties": {"entity_ref": {"type": "string"}}
+        },
+        "output_schema": {"type": "array"},
+        "computable_by": ["detect", "project_box_to_3d_points", "code"],
+        "tags": ["state", "surface", "normal"]
+      }
+    ],
+    "metric": [
+      {
+        "id": "metric.relative_displacement",
+        "family": "metric",
+        "name": "relative_displacement",
+        "description": "3D displacement vector from one entity to another, expressed in a chosen frame.",
+        "arguments_schema": {
+          "type": "object",
+          "required": ["entity_a", "entity_b", "frame_ref"],
+          "properties": {
+            "entity_a": {"type": "string"},
+            "entity_b": {"type": "string"},
+            "frame_ref": {"type": "string"}
+          }
+        },
+        "output_schema": {"type": "array"},
+        "computable_by": ["code"],
+        "tags": ["metric", "relative", "displacement"]
+      },
+      {
+        "id": "metric.planar_displacement",
+        "family": "metric",
+        "name": "planar_displacement",
+        "description": "Horizontal-plane displacement used for left/right/front/back decisions.",
+        "arguments_schema": {
+          "type": "object",
+          "required": ["entity_a", "entity_b", "frame_ref"],
+          "properties": {
+            "entity_a": {"type": "string"},
+            "entity_b": {"type": "string"},
+            "frame_ref": {"type": "string"},
+            "plane": {"type": "string"}
+          }
+        },
+        "output_schema": {"type": "array"},
+        "computable_by": ["code"],
+        "tags": ["metric", "planar", "left_right", "front_back"]
+      },
+      {
+        "id": "metric.vertical_offset",
+        "family": "metric",
+        "name": "vertical_offset",
+        "description": "Vertical displacement for above/below/top/bottom judgments.",
+        "arguments_schema": {
+          "type": "object",
+          "required": ["entity_a", "entity_b", "frame_ref"],
+          "properties": {
+            "entity_a": {"type": "string"},
+            "entity_b": {"type": "string"},
+            "frame_ref": {"type": "string"}
+          }
+        },
+        "output_schema": {"type": "number"},
+        "computable_by": ["code"],
+        "tags": ["metric", "vertical", "above_below"]
+      },
+      {
+        "id": "metric.euclidean_distance",
+        "family": "metric",
+        "name": "euclidean_distance",
+        "description": "Frame-invariant 3D Euclidean distance between entities or points.",
+        "arguments_schema": {
+          "type": "object",
+          "required": ["entity_a", "entity_b"],
+          "properties": {
+            "entity_a": {"type": "string"},
+            "entity_b": {"type": "string"},
+            "unit": {"type": "string"}
+          }
+        },
+        "output_schema": {"type": "number"},
+        "computable_by": ["estimate_scale", "code"],
+        "tags": ["metric", "distance"]
+      },
+      {
+        "id": "metric.surface_distance",
+        "family": "metric",
+        "name": "surface_distance",
+        "description": "Distance between two entity point sets or surfaces.",
+        "arguments_schema": {
+          "type": "object",
+          "required": ["entity_a", "entity_b"],
+          "properties": {
+            "entity_a": {"type": "string"},
+            "entity_b": {"type": "string"}
+          }
+        },
+        "output_schema": {"type": "number"},
+        "computable_by": ["code"],
+        "tags": ["metric", "surface", "distance"]
+      },
+      {
+        "id": "metric.size_comparison",
+        "family": "metric",
+        "name": "size_comparison",
+        "description": "Compare entity extents along an axis or by volume.",
+        "arguments_schema": {
+          "type": "object",
+          "required": ["entity_a", "entity_b", "axis"],
+          "properties": {
+            "entity_a": {"type": "string"},
+            "entity_b": {"type": "string"},
+            "axis": {"type": "string"}
+          }
+        },
+        "output_schema": {"type": "object"},
+        "computable_by": ["code"],
+        "tags": ["metric", "size", "comparison"]
+      },
+      {
+        "id": "metric.orientation_difference",
+        "family": "metric",
+        "name": "orientation_difference",
+        "description": "Angular difference between two orientation axes.",
+        "arguments_schema": {
+          "type": "object",
+          "required": ["axis_a", "axis_b"],
+          "properties": {
+            "axis_a": {"type": "string"},
+            "axis_b": {"type": "string"},
+            "unit": {"type": "string", "enum": ["degrees", "radians"]}
+          }
+        },
+        "output_schema": {"type": "number"},
+        "computable_by": ["code"],
+        "tags": ["metric", "orientation", "angle"]
+      },
+      {
+        "id": "metric.facing_alignment",
+        "family": "metric",
+        "name": "facing_alignment",
+        "description": "Cosine or angle measuring whether an entity faces a target or frame direction.",
+        "arguments_schema": {
+          "type": "object",
+          "required": ["entity_ref", "target_ref"],
+          "properties": {
+            "entity_ref": {"type": "string"},
+            "target_ref": {"type": "string"},
+            "frame_ref": {"type": "string"}
+          }
+        },
+        "output_schema": {"type": "number"},
+        "computable_by": ["code"],
+        "tags": ["metric", "facing", "alignment"]
+      },
+      {
+        "id": "metric.containment",
+        "family": "metric",
+        "name": "containment_relation",
+        "description": "Whether one entity or point set lies inside another entity, box, or region.",
+        "arguments_schema": {
+          "type": "object",
+          "required": ["inner_ref", "outer_ref"],
+          "properties": {
+            "inner_ref": {"type": "string"},
+            "outer_ref": {"type": "string"}
+          }
+        },
+        "output_schema": {"type": "object"},
+        "computable_by": ["code"],
+        "tags": ["metric", "containment", "inside"]
+      },
+      {
+        "id": "metric.between_ratio",
+        "family": "metric",
+        "name": "between_ratio",
+        "description": "Project an entity onto the segment between two anchors and measure between-ness.",
+        "arguments_schema": {
+          "type": "object",
+          "required": ["entity_ref", "anchor_a", "anchor_b", "frame_ref"],
+          "properties": {
+            "entity_ref": {"type": "string"},
+            "anchor_a": {"type": "string"},
+            "anchor_b": {"type": "string"},
+            "frame_ref": {"type": "string"}
+          }
+        },
+        "output_schema": {"type": "object"},
+        "computable_by": ["code"],
+        "tags": ["metric", "between", "ratio"]
+      },
+      {
+        "id": "metric.count",
+        "family": "metric",
+        "name": "count_metric",
+        "description": "Number of instances in a grounded candidate entity set.",
+        "arguments_schema": {
+          "type": "object",
+          "required": ["candidate_set_ref"],
+          "properties": {"candidate_set_ref": {"type": "string"}}
+        },
+        "output_schema": {"type": "integer"},
+        "computable_by": ["detect", "code"],
+        "tags": ["metric", "count"]
+      },
+      {
+        "id": "metric.camera_translation",
+        "family": "metric",
+        "name": "camera_translation",
+        "description": "Translation between two camera views expressed in a chosen frame.",
+        "arguments_schema": {
+          "type": "object",
+          "required": ["view_a", "view_b", "frame_ref"],
+          "properties": {
+            "view_a": {"type": "string"},
+            "view_b": {"type": "string"},
+            "frame_ref": {"type": "string"}
+          }
+        },
+        "output_schema": {"type": "array"},
+        "computable_by": ["reconstruct", "code"],
+        "tags": ["metric", "camera", "translation"]
+      },
+      {
+        "id": "metric.camera_rotation",
+        "family": "metric",
+        "name": "camera_rotation",
+        "description": "Rotation between two camera views expressed in a chosen frame.",
+        "arguments_schema": {
+          "type": "object",
+          "required": ["view_a", "view_b", "frame_ref"],
+          "properties": {
+            "view_a": {"type": "string"},
+            "view_b": {"type": "string"},
+            "frame_ref": {"type": "string"}
+          }
+        },
+        "output_schema": {"type": "object"},
+        "computable_by": ["reconstruct", "code"],
+        "tags": ["metric", "camera", "rotation"]
+      },
+      {
+        "id": "metric.region_object_query",
+        "family": "metric",
+        "name": "region_object_query",
+        "description": "Select objects satisfying a region specification such as left side, near doorway, or inside area.",
+        "arguments_schema": {
+          "type": "object",
+          "required": ["region_spec", "candidate_set_ref", "frame_ref"],
+          "properties": {
+            "region_spec": {"type": "string"},
+            "candidate_set_ref": {"type": "string"},
+            "frame_ref": {"type": "string"}
+          }
+        },
+        "output_schema": {"type": "array"},
+        "computable_by": ["code"],
+        "tags": ["metric", "region", "query"]
+      }
+    ]
+  }
+}

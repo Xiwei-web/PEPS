@@ -1,0 +1,73 @@
+{
+  "config_version": "0.1.0",
+  "schema_version": "0.1.0",
+  "paths": {
+    "persistent_library": "peps/data/primitive_library.yaml",
+    "candidate_pool": "peps/data/candidate_primitive_pool.json",
+    "example_library": "peps/data/example_library.json",
+    "schema_versions_dir": "peps/data/schema_versions"
+  },
+  "families": {
+    "order": ["frame", "entity", "state", "metric"],
+    "frame": [
+      "frame.camera_based",
+      "frame.object_based",
+      "frame.direction_based",
+      "frame.event_defined_direction"
+    ],
+    "entity": [
+      "entity.target",
+      "entity.anchor",
+      "entity.candidate_set",
+      "entity.view_source",
+      "entity.filter",
+      "entity.count"
+    ],
+    "state": [
+      "state.camera_pose",
+      "state.centroid",
+      "state.bbox3d",
+      "state.pointset",
+      "state.pose3d",
+      "state.orientation",
+      "state.surface_normal"
+    ],
+    "metric": [
+      "metric.relative_displacement",
+      "metric.planar_displacement",
+      "metric.vertical_offset",
+      "metric.euclidean_distance",
+      "metric.surface_distance",
+      "metric.size_comparison",
+      "metric.orientation_difference",
+      "metric.facing_alignment",
+      "metric.containment",
+      "metric.between_ratio",
+      "metric.count",
+      "metric.camera_translation",
+      "metric.camera_rotation",
+      "metric.region_object_query"
+    ]
+  },
+  "validation": {
+    "parser_must_use_persistent_library": true,
+    "require_metric_primitive": true,
+    "require_argument_validation": true,
+    "allow_candidate_hypotheses_in_requirements": false,
+    "score_scale": "0-1"
+  },
+  "admission": {
+    "min_reuse_count": 5,
+    "min_accepted_count": 1,
+    "min_average_score": 0.7,
+    "min_average_improvement": 0.0,
+    "require_non_conflict": true,
+    "require_computable_by": true
+  },
+  "example_library": {
+    "retrieve_top_k": 3,
+    "retention_threshold": 0.7,
+    "store_accepted_only": true
+  }
+}
+

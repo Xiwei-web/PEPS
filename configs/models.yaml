@@ -1,0 +1,62 @@
+{
+  "config_version": "0.1.0",
+  "provider": "openai",
+  "environment": {
+    "api_key_env": "OPENAI_API_KEY",
+    "base_url_env": "OPENAI_BASE_URL",
+    "model_env": "PEPS_OPENAI_MODEL",
+    "fallback_model_env": "OPENAI_MODEL",
+    "organization_env": "OPENAI_ORG_ID",
+    "project_env": "OPENAI_PROJECT_ID"
+  },
+  "defaults": {
+    "model": "gpt-4o",
+    "temperature": 0.0,
+    "timeout_seconds": 120,
+    "retry_max_attempts": 3,
+    "retry_initial_delay_seconds": 1.0,
+    "retry_max_delay_seconds": 20.0
+  },
+  "agents": {
+    "parser": {
+      "model": null,
+      "temperature": 0.0,
+      "max_output_tokens": 4096,
+      "use_json_schema": true,
+      "strict_json_schema": false
+    },
+    "executor": {
+      "model": null,
+      "temperature": 0.0,
+      "max_output_tokens": 4096,
+      "use_json_schema": true,
+      "strict_json_schema": false
+    },
+    "coder": {
+      "model": null,
+      "temperature": 0.0,
+      "max_output_tokens": 4096,
+      "use_json_schema": true,
+      "strict_json_schema": false,
+      "max_code_attempts": 2
+    },
+    "verifier": {
+      "model": null,
+      "temperature": 0.0,
+      "max_output_tokens": 2048,
+      "use_images": true,
+      "normalize_legacy_scores": true
+    }
+  },
+  "model_aliases": {
+    "balanced": "gpt-4o",
+    "fast": "gpt-4o-mini",
+    "strong": "gpt-4.1",
+    "cheap": "gpt-4.1-mini"
+  },
+  "notes": {
+    "model_resolution_order": "per-call model > agent config model > PEPS_OPENAI_MODEL > OPENAI_MODEL > defaults.model",
+    "api_key_setup": "export OPENAI_API_KEY=\"your-openai-api-key\""
+  }
+}
+

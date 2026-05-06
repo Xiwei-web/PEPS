@@ -1,0 +1,30 @@
+{
+  "config_version": "0.1.0",
+  "project": {
+    "name": "PEPS",
+    "description": "Parsing Executable Primitives for Spatial Reasoning",
+    "package": "peps"
+  },
+  "paths": {
+    "primitive_library": "peps/data/primitive_library.yaml",
+    "candidate_pool": "peps/data/candidate_primitive_pool.json",
+    "example_library": "peps/data/example_library.json",
+    "trace_dir": "peps/data/traces",
+    "schema_versions_dir": "peps/data/schema_versions",
+    "reports_dir": "peps/data/reports",
+    "cache_dir": "peps/data/cache"
+  },
+  "defaults": {
+    "models_config": "peps/configs/models.yaml",
+    "tools_config": "peps/configs/tools.yaml",
+    "workflow_config": "peps/configs/workflow.yaml",
+    "schema_config": "peps/configs/schema.yaml"
+  },
+  "runtime": {
+    "score_scale": "0-1",
+    "json_compatible_yaml": true,
+    "save_traces": true,
+    "continue_on_batch_error": true
+  }
+}
+

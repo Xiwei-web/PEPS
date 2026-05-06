@@ -1,0 +1,100 @@
+{
+  "config_version": "0.1.0",
+  "registry": {
+    "include_code_tool": true,
+    "include_code_placeholder": false,
+    "tool_order": [
+      "reconstruct",
+      "detect",
+      "project_box_to_3d_points",
+      "predict_obj_pose",
+      "estimate_scale",
+      "ocr",
+      "analyze_motion",
+      "code"
+    ]
+  },
+  "tools": {
+    "reconstruct": {
+      "backend": "placeholder",
+      "target_backend": "vggt",
+      "local_model_env": "PEPS_VGGT_MODEL_DIR",
+      "requires_download": true,
+      "dependencies": ["PIL", "VGGT"],
+      "description": "Dense 3D reconstruction and camera pose estimation."
+    },
+    "detect": {
+      "backend": "placeholder_or_precomputed",
+      "target_backend": "grounding_dino_or_openai_vlm",
+      "local_model_env": "PEPS_GROUNDING_DINO_MODEL_DIR",
+      "checkpoint_env": "PEPS_GROUNDING_DINO_CHECKPOINT",
+      "requires_download": true,
+      "dependencies": ["GroundingDINO"],
+      "description": "Open-vocabulary semantic object detection."
+    },
+    "project_box_to_3d_points": {
+      "backend": "deterministic_placeholder",
+      "target_backend": "reconstruction_world_points_sampler",
+      "requires_download": false,
+      "dependencies": ["reconstruct"],
+      "description": "Project a 2D box into 3D points using reconstruction output."
+    },
+    "predict_obj_pose": {
+      "backend": "placeholder",
+      "target_backend": "orientation_anything_plus_pointcloud",
+      "local_model_env": "PEPS_ORIENTATION_ANYTHING_MODEL_DIR",
+      "requires_download": true,
+      "dependencies": ["OrientationAnything", "Open3D"],
+      "description": "Estimate object pose and semantic orientation."
+    },
+    "estimate_scale": {
+      "backend": "placeholder",
+      "target_backend": "moge_metric_depth_alignment",
+      "local_model_env": "PEPS_MOGE_MODEL_DIR",
+      "requires_download": true,
+      "dependencies": ["MoGe-2"],
+      "description": "Estimate metric scale factor for relative reconstruction."
+    },
+    "ocr": {
+      "backend": "placeholder_or_precomputed",
+      "target_backend": "easyocr",
+      "local_model_env": "PEPS_EASYOCR_MODEL_DIR",
+      "requires_download": true,
+      "dependencies": ["EasyOCR"],
+      "description": "Read visible text in images."
+    },
+    "analyze_motion": {
+      "backend": "opencv_if_available_else_placeholder",
+      "target_backend": "opencv_farneback",
+      "requires_download": false,
+      "dependencies": ["opencv-python", "numpy", "PIL"],
+      "description": "Analyze optical flow between sequential images."
+    },
+    "code": {
+      "backend": "local_sandbox",
+      "requires_download": false,
+      "dependencies": ["python_stdlib"],
+      "description": "Execute deterministic generated Python code over workspace values."
+    }
+  },
+  "code_sandbox": {
+    "timeout_seconds": 10.0,
+    "isolated": true,
+    "allowed_imports": [
+      "math",
+      "statistics",
+      "itertools",
+      "functools",
+      "collections",
+      "operator"
+    ],
+    "forbidden_capabilities": [
+      "file_io",
+      "network",
+      "subprocess",
+      "eval_exec",
+      "unsafe_imports"
+    ]
+  }
+}
+

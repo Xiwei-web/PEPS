@@ -1,0 +1,67 @@
+{
+  "config_version": "0.1.0",
+  "graph": {
+    "nodes": [
+      "parser",
+      "executor",
+      "coder",
+      "verifier",
+      "accept",
+      "refine",
+      "reject"
+    ],
+    "edges": [
+      ["parser", "executor"],
+      ["executor", "coder"],
+      ["coder", "verifier"],
+      ["verifier", "accept"],
+      ["verifier", "refine"],
+      ["verifier", "reject"],
+      ["refine", "parser"]
+    ]
+  },
+  "loop": {
+    "max_rounds": 3,
+    "min_accept_score": 0.0,
+    "example_retention_threshold": 0.7,
+    "save_traces": true,
+    "trace_per_round": true
+  },
+  "agent_boundaries": {
+    "parser": [
+      "select primitives from schema",
+      "do not call tools",
+      "do not write code",
+      "do not answer"
+    ],
+    "executor": [
+      "acquire values for selected primitives",
+      "do not revise primitive requirements",
+      "do not answer",
+      "do not perform final compute"
+    ],
+    "coder": [
+      "use only workspace variables",
+      "do not call perception tools",
+      "do not revise requirements",
+      "return answer and computed_metrics"
+    ],
+    "verifier": [
+      "verify trace support",
+      "do not solve from scratch",
+      "emit accept or reject",
+      "emit missing_slot or primitive_gap feedback"
+    ]
+  },
+  "refinement": {
+    "missing_slot": {
+      "parser_may_create_new_primitive": false,
+      "action": "reparse using existing persistent primitive library"
+    },
+    "primitive_gap": {
+      "parser_may_create_new_primitive": true,
+      "action": "write temporary primitive hypotheses to candidate pool"
+    }
+  }
+}
+

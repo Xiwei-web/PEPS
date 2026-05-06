@@ -1,0 +1,29 @@
+# PEPS core runtime dependencies
+#
+# The current PEPS scaffold intentionally uses only the Python standard library:
+# - OpenAI calls are implemented with urllib in peps/llm/openai_client.py.
+# - Config files are JSON-compatible YAML and are parsed with json.
+# - Tests use unittest instead of pytest.
+#
+# Required Python version:
+#   Python >= 3.11
+#
+# No mandatory third-party packages are required for the current runnable
+# Parser -> Executor -> Coder -> Verifier skeleton.
+
+# Optional convenience dependency if you later want non-JSON YAML config files:
+# PyYAML>=6.0.2
+
+# Optional future visual backend dependencies, to be enabled only after the
+# corresponding tool backends are implemented and documented:
+# torch
+# torchvision
+# transformers
+# accelerate
+# pillow
+# opencv-python
+# numpy
+# scipy
+# open3d
+# groundingdino
+# easyocr
