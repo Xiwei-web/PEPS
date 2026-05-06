@@ -2,7 +2,7 @@
 
 PEPS is an agentic, schema-constrained spatial reasoning framework. Given a spatial query and one or more images, PEPS first parses the query into a required set of executable spatial primitives, then acquires the corresponding values through geometry tools, computes the answer with deterministic code, and verifies the resulting trace.
 
-![alt text](assets/overview.jpg)
+![alt text](assets/overview.png)
 
 
 
