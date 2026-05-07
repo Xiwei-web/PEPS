@@ -175,19 +175,6 @@ python -m peps.entrypoints.run_query \
     --model gpt-4o
 ```
 
-### Batch Run
-
-Input JSON:
-
-```bash
-python -m peps.entrypoints.run_eval \
-    --input mmsi_bench_annotations.json \
-    --dataset-name MMSI-Bench \
-    --predictions-output data/reports/mmsi_predictions.jsonl \
-    --report-output data/reports/mmsi_report.json \
-    --model gpt-4o
-```
-
 ### Evaluation
 
 ```bash
