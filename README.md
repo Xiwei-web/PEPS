@@ -170,7 +170,8 @@ All commands should be run from the project root.
 ```bash
 python -m peps.entrypoints.run_query \
     --query "Is the chair to the left of the table?" \
-    --image /path/to/image.jpg \
+    --image /path/to/view_0.jpg \
+    --image /path/to/view_1.jpg \
     --model gpt-4o
 ```
 
@@ -178,25 +179,13 @@ python -m peps.entrypoints.run_query \
 
 Input JSON:
 
-```json
-[
-  {
-    "id": "q0",
-    "query": "Is the chair to the left of the table?",
-    "images": ["/path/to/image.jpg"],
-    "choices": ["yes", "no"]
-  }
-]
-```
-
-Command:
-
 ```bash
-python -m peps.entrypoints.run_batch \
-    --input /path/to/batch.json \
-    --output peps/data/reports/batch_predictions.jsonl \
-    --model gpt-4o \
-    --continue-on-error
+python -m peps.entrypoints.run_eval \
+    --input mmsi_bench_annotations.json \
+    --dataset-name MMSI-Bench \
+    --predictions-output data/reports/mmsi_predictions.jsonl \
+    --report-output data/reports/mmsi_report.json \
+    --model gpt-4o
 ```
 
 ### Evaluation
